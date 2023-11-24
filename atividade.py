@@ -64,22 +64,25 @@ from multiprocessing import process
 
 #print(minha_lista_filtrada)
 
-minha_lista = []
+from multiprocessing import Process, Manager
 
-def funcao():
+def funcao(lista):
     for i in range(100000):
-        minha_lista.append(1)
+        lista.append(1)
     for i in range(100000):
-        minha_lista.pop()
+        lista.pop()
 
 if __name__ == '__main__':
-    processos = []
-    for indice in range(10):
-        processo = process(target=funcao)
-        processos.append(processo)
-        processo.start()
-    
-    print(len(minha_lista))
-    for processo in processos:
-        processo.join()
-    print(len(minha_lista))
+    with Manager() as manager:
+        minha_lista = manager.list()  # Lista compartilhada entre processos
+        processos = []
+
+        for indice in range(10):
+            processo = Process(target=funcao, args=(minha_lista,))
+            processos.append(processo)
+            processo.start()
+
+        for processo in processos:
+            processo.join()
+
+        print(len(minha_lista))
